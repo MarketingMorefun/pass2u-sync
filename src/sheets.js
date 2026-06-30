@@ -28,7 +28,6 @@ import {
   SHEET_TIME_ZONE,
   DATE_COLUMN,
   FIRST_DATA_ROW,
-  PASS2U_ACCOUNTING_COLUMN,
   VOUCHER_COLUMNS,
 } from './config.js';
 
@@ -200,9 +199,16 @@ export async function writeAggregates(sheets, bySheet, { dryRun = false } = {}) 
   const updates = [];
 
   for (const [sheetName, byDate] of Object.entries(bySheet)) {
-    const dateToRow = await buildDateToRow(sheets, sheetName);
+    // Only the per-voucher breakdown columns (F/G/H/I) are written. The
+    // "Pass2U Accounting" total column (E) is left untouched on every tab.
+    // Tabs without breakdown columns (e.g. Burwood) therefore get nothing.
     const voucherColumns = await hasVoucherColumns(sheets, sheetName);
+    if (!voucherColumns) {
+      warnings.push(`${sheetName}: no voucher breakdown columns — nothing written (E left untouched)`);
+      continue;
+    }
 
+    const dateToRow = await buildDateToRow(sheets, sheetName);
     for (const [dateKey, counts] of Object.entries(byDate)) {
       const row = dateToRow[dateKey];
       if (!row) {
@@ -210,18 +216,11 @@ export async function writeAggregates(sheets, bySheet, { dryRun = false } = {}) 
         continue;
       }
 
-      updates.push({
-        range: `${sheetName}!${colLetter(PASS2U_ACCOUNTING_COLUMN)}${row}`,
-        values: [[counts.total || '']],
-      });
-
-      if (voucherColumns) {
-        for (const [voucherType, column] of Object.entries(VOUCHER_COLUMNS)) {
-          updates.push({
-            range: `${sheetName}!${colLetter(column)}${row}`,
-            values: [[counts.byVoucher[voucherType] || '']],
-          });
-        }
+      for (const [voucherType, column] of Object.entries(VOUCHER_COLUMNS)) {
+        updates.push({
+          range: `${sheetName}!${colLetter(column)}${row}`,
+          values: [[counts.byVoucher[voucherType] || '']],
+        });
       }
     }
   }

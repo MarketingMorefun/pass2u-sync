@@ -5,8 +5,10 @@
  *  - Which sheet tab (store)  -> from the redemption's `scannerName` (who scanned it),
  *    with a fallback to the model name when scannerName is missing/unknown.
  *  - Which voucher column     -> from the redemption's `modelId`.
- *  - Column E ("Pass2U Accounting") is the TOTAL of every redemption routed to that
- *    store/day, including voucher types that have no dedicated column (e.g. $5).
+ *
+ * Only the per-voucher breakdown columns (F/G/H/I) are written. Column E
+ * ("Pass2U Accounting") is intentionally left untouched for manual upkeep, so tabs
+ * without breakdown columns (e.g. Burwood) are not written at all.
  */
 
 export const SPREADSHEET_ID = '1xffQDGVLDM-65fG8Y2daoJloYjhvJZZAhRw27KqLwgY';
@@ -19,9 +21,9 @@ export const PASS2U_SERVER_OFFSET = '+08:00';
 export const PASS2U_WEB_BASE_URL = 'https://www.pass2u.net';
 export const PASS2U_PAGE_SIZE = 100;
 
-// Sheet layout (1-based column indexes).
+// Sheet layout (1-based column indexes). Column E ("Pass2U Accounting") is
+// deliberately NOT written — it is maintained manually.
 export const DATE_COLUMN = 1; // A
-export const PASS2U_ACCOUNTING_COLUMN = 5; // E (total)
 export const FIRST_DATA_ROW = 3;
 
 // Voucher type -> breakdown column. Sheets that lack these columns only get column E.

@@ -6,9 +6,9 @@
  *    with a fallback to the model name when scannerName is missing/unknown.
  *  - Which voucher column     -> from the redemption's `modelId`.
  *
- * Only the per-voucher breakdown columns (F/G/H/I) are written. Column E
- * ("Pass2U Accounting") is intentionally left untouched for manual upkeep, so tabs
- * without breakdown columns (e.g. Burwood) are not written at all.
+ * Only the per-voucher breakdown columns (F/G/H/I) are written, and only on tabs
+ * that actually have the $4/$8/$10/1h-free header row (detected at runtime). Column E
+ * ("Pass2U Accounting") is intentionally left untouched everywhere for manual upkeep.
  */
 
 export const SPREADSHEET_ID = '1xffQDGVLDM-65fG8Y2daoJloYjhvJZZAhRw27KqLwgY';

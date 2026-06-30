@@ -27,6 +27,22 @@ function parseArgs(argv) {
   return args;
 }
 
+/** Retry transient network failures (token endpoint / Sheets API dropping the connection). */
+const TRANSIENT = /premature close|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up|network|fetch failed/i;
+
+async function withRetry(fn, { attempts = 4, baseDelayMs = 1000 } = {}) {
+  for (let i = 1; ; i += 1) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i >= attempts || !TRANSIENT.test(err.message || '')) throw err;
+      const delay = baseDelayMs * 2 ** (i - 1);
+      console.warn(`[pass2u-sync] transient error (attempt ${i}/${attempts}): ${err.message}; retrying in ${delay}ms`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+}
+
 function resolveWindow(args) {
   const tz = SHEET_TIME_ZONE;
   const to = args.to
@@ -76,9 +92,12 @@ async function main() {
     console.log(`  ${sheetName}: ${total} across ${Object.keys(byDate).length} day(s)`);
   }
 
-  const sheets = await getSheetsClient();
-  const { warnings, written, updates } = await writeAggregates(sheets, result, {
-    dryRun: args.dryRun,
+  // The Google token endpoint and Sheets API occasionally drop the connection on
+  // CI runners ("Premature close", ECONNRESET, socket hang up). The whole write is
+  // idempotent (it overwrites cells), so just retry the phase on transient errors.
+  const { warnings, written, updates } = await withRetry(async () => {
+    const sheets = await getSheetsClient();
+    return writeAggregates(sheets, result, { dryRun: args.dryRun });
   });
   warnings.forEach((w) => console.warn(`[pass2u-sync] ${w}`));
 

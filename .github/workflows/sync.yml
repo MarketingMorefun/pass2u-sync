@@ -1,0 +1,42 @@
+name: pass2u-sync
+
+on:
+  # Manual trigger: Actions tab -> "pass2u-sync" -> "Run workflow"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "How many trailing days to re-sync"
+        required: false
+        default: "14"
+  # Daily at 14:00 UTC = 00:00 AEST / 01:00 AEDT (just after midnight in Sydney,
+  # so the previous full day is captured). GitHub cron is UTC and ignores DST.
+  schedule:
+    - cron: "0 14 * * *"
+
+# Prevent overlapping runs (manual + scheduled at the same time).
+concurrency:
+  group: pass2u-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Run sync
+        env:
+          PASS2U_EMAIL: ${{ secrets.PASS2U_EMAIL }}
+          PASS2U_PASSWORD: ${{ secrets.PASS2U_PASSWORD }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+        run: node src/index.js --days ${{ github.event.inputs.days || '14' }}

@@ -12,6 +12,7 @@
  * nothing to expire.
  */
 
+import { FixedOffsetZone } from 'luxon';
 import {
   PASS2U_WEB_BASE_URL,
   PASS2U_PAGE_SIZE,
@@ -19,6 +20,13 @@ import {
   PASS2U_MODELS,
   MODEL_DIRECTORY_STATUSES,
 } from './config.js';
+
+// Pass2U expects timestamps in a fixed +08:00 offset. Build the zone arithmetically
+// via FixedOffsetZone instead of setZone('+08:00'): offset-style IANA names are only
+// accepted by newer V8/ICU (Node 22+), so on the Node 20 GitHub runner
+// setZone('+08:00') yields an invalid DateTime that formats to the literal string
+// "Invalid DateTime" — which Pass2U then rejects with a 400.
+const SERVER_ZONE = FixedOffsetZone.parseSpecifier(`UTC${PASS2U_SERVER_OFFSET}`);
 
 export class Pass2UClient {
   constructor({ email, password }) {
@@ -230,5 +238,5 @@ export class Pass2UClient {
 }
 
 function toServerStamp(dt) {
-  return dt.setZone(PASS2U_SERVER_OFFSET).toFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
+  return dt.setZone(SERVER_ZONE).toFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
 }

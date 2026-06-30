@@ -127,5 +127,3 @@ node src/index.js --from 2026-06-01 --to 2026-06-29
   self-heals any previously missed days.
 - The old `pass2u_google_sheet_auto_fill.gs` (Apps Script + manually pasted cookie)
   is superseded by this and kept only for reference.
-# pass2u-sync
-# pass2u-sync

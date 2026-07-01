@@ -43,3 +43,12 @@ jobs:
         # Google; Node 17+ no longer prefers IPv4, so the token endpoint connection
         # gets reset ("Premature close"). Force IPv4 resolution.
         run: node --dns-result-order=ipv4first src/index.js --days ${{ github.event.inputs.days || '14' }}
+
+      - name: Run review counter
+        # Runs even if the Pass2U step failed (independent data source), but not on cancel.
+        if: ${{ !cancelled() }}
+        env:
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+        run: node --dns-result-order=ipv4first src/reviews.js --days ${{ github.event.inputs.days || '14' }}

@@ -24,7 +24,12 @@ const CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
 const PORT = Number(process.env.OAUTH_PORT || 4571);
 const REDIRECT_URI = `http://localhost:${PORT}`;
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const SCOPES = [
+  'https://www.googleapis.com/auth/spreadsheets',
+  // Business Profile API (Google reviews). The resulting refresh token can then
+  // both write the sheet and read reviews.
+  'https://www.googleapis.com/auth/business.manage',
+];
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   console.error('Missing GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET env vars.');

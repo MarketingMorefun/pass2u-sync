@@ -8,7 +8,8 @@
     "sync": "node src/index.js",
     "sync:14": "node src/index.js --days 14",
     "dry-run": "node src/index.js --dry-run",
-    "auth": "node scripts/get-refresh-token.mjs"
+    "auth": "node scripts/get-refresh-token.mjs",
+    "gbp:locations": "node scripts/list-gbp-locations.mjs"
   },
   "engines": {
     "node": ">=18"

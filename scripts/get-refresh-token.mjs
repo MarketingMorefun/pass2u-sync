@@ -24,12 +24,18 @@ const CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
 const PORT = Number(process.env.OAUTH_PORT || 4571);
 const REDIRECT_URI = `http://localhost:${PORT}`;
-const SCOPES = [
-  'https://www.googleapis.com/auth/spreadsheets',
-  // Business Profile API (Google reviews). The resulting refresh token can then
-  // both write the sheet and read reviews.
-  'https://www.googleapis.com/auth/business.manage',
-];
+// AUTH_MODE=gmail authorizes the mailbox owner for the review-games check (read the
+// tech CSV + send the summary) and prints GMAIL_OAUTH_REFRESH_TOKEN. Default mode
+// authorizes Sheets + Business Profile and prints GOOGLE_OAUTH_REFRESH_TOKEN.
+const GMAIL_MODE = process.env.AUTH_MODE === 'gmail';
+const SCOPES = GMAIL_MODE
+  ? ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.send']
+  : [
+      'https://www.googleapis.com/auth/spreadsheets',
+      // Business Profile API (Google reviews).
+      'https://www.googleapis.com/auth/business.manage',
+    ];
+const OUTPUT_VAR = GMAIL_MODE ? 'GMAIL_OAUTH_REFRESH_TOKEN' : 'GOOGLE_OAUTH_REFRESH_TOKEN';
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   console.error('Missing GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET env vars.');
@@ -73,7 +79,7 @@ const server = http.createServer(async (req, res) => {
       process.exit(1);
     }
     console.log('\n=== Success — store this as a secret ===');
-    console.log(`GOOGLE_OAUTH_REFRESH_TOKEN=${tokens.refresh_token}`);
+    console.log(`${OUTPUT_VAR}=${tokens.refresh_token}`);
   } catch (err) {
     console.error(`\nToken exchange failed: ${err.message}`);
     process.exit(1);

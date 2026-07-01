@@ -10,7 +10,10 @@
     "dry-run": "node src/index.js --dry-run",
     "reviews": "node src/reviews.js",
     "reviews:dry-run": "node src/reviews.js --dry-run",
+    "review-games": "node src/review-games.js",
+    "review-games:dry-run": "node src/review-games.js --dry-run",
     "auth": "node scripts/get-refresh-token.mjs",
+    "auth:gmail": "AUTH_MODE=gmail node scripts/get-refresh-token.mjs",
     "gbp:locations": "node scripts/list-gbp-locations.mjs"
   },
   "engines": {

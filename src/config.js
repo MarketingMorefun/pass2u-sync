@@ -98,3 +98,13 @@ export const REVIEW_SOURCES = [
     },
   },
 ];
+
+// --- "G Review 2 Free Games" abuse check (weekly email report) ---
+// A tech mailbox emails a CSV of every free-games button press (card number per
+// press). We read the latest such email, flag cards pressed repeatedly (same card
+// = someone claiming free games more than once), and email a summary.
+export const REVIEW_GAMES_SENDER = 'support@kokoamusement.com.au';
+// Where the weekly summary is sent. Override with REVIEW_ALERT_TO.
+export const REVIEW_ALERT_TO = process.env.REVIEW_ALERT_TO || 'marketing@morefun.com.au';
+// A card pressed this many times or more across the report is flagged as suspicious.
+export const CARD_REPEAT_THRESHOLD = 3;

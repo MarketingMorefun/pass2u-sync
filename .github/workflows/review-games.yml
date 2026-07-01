@@ -1,0 +1,34 @@
+name: review-games-check
+
+on:
+  # Manual trigger: Actions -> "review-games-check" -> Run workflow
+  workflow_dispatch:
+  # Mondays 03:00 UTC (~1–2pm Sydney) — after the tech report email lands.
+  schedule:
+    - cron: "0 3 * * 1"
+
+concurrency:
+  group: review-games-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Check G Review 2 Free Games usage
+        env:
+          GMAIL_OAUTH_CLIENT_ID: ${{ secrets.GMAIL_OAUTH_CLIENT_ID }}
+          GMAIL_OAUTH_CLIENT_SECRET: ${{ secrets.GMAIL_OAUTH_CLIENT_SECRET }}
+          GMAIL_OAUTH_REFRESH_TOKEN: ${{ secrets.GMAIL_OAUTH_REFRESH_TOKEN }}
+        # --dns-result-order=ipv4first: GitHub runners often have broken IPv6 to Google.
+        run: node --dns-result-order=ipv4first src/review-games.js

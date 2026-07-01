@@ -15,7 +15,7 @@
  */
 
 import { DateTime } from 'luxon';
-import { SPREADSHEET_ID, SHEET_TIME_ZONE, REVIEW_LOCATIONS, REVIEW_COLUMN } from './config.js';
+import { SPREADSHEET_ID, SHEET_TIME_ZONE, REVIEW_SOURCES } from './config.js';
 import { getAccessToken, getSheetsClient, buildDateToRow } from './sheets.js';
 
 const GBP_BASE = 'https://mybusiness.googleapis.com/v4';
@@ -86,38 +86,39 @@ async function main() {
 
   const token = await getAccessToken();
 
-  // Fetch + count per store tab.
-  const bySheet = {};
-  for (const [sheetName, location] of Object.entries(REVIEW_LOCATIONS)) {
-    const byDate = countByDay(await fetchReviews(location, token));
-    bySheet[sheetName] = byDate;
-    const inWindow = Object.entries(byDate).filter(([k]) => {
-      const dt = DateTime.fromFormat(k, 'dd/LL/yyyy', { zone: SHEET_TIME_ZONE });
-      return dt.isValid && dt >= from && dt <= to;
-    });
-    const total = inWindow.reduce((sum, [, n]) => sum + n, 0);
-    console.log(`  ${sheetName}: ${total} review(s) across ${inWindow.length} day(s) in window`);
+  // Fetch + count per source (KOKO / Cityheroes) and store tab.
+  const counted = [];
+  for (const source of REVIEW_SOURCES) {
+    for (const [sheetName, location] of Object.entries(source.locations)) {
+      const byDate = countByDay(await fetchReviews(location, token));
+      counted.push({ source, sheetName, byDate });
+      const total = Object.entries(byDate).reduce((sum, [k, n]) => {
+        const dt = DateTime.fromFormat(k, 'dd/LL/yyyy', { zone: SHEET_TIME_ZONE });
+        return dt.isValid && dt >= from && dt <= to ? sum + n : sum;
+      }, 0);
+      console.log(`  [${source.label}] ${sheetName}: ${total} review(s) in window`);
+    }
   }
 
-  // Write the count into every existing date row inside the window (0 if none).
+  // Write each source's count into its column, for every existing date row inside
+  // the window (0 if none). Date->row map is read once per tab and reused.
   const sheets = await getSheetsClient(token);
-  const warnings = [];
+  const rowCache = {};
   const updates = [];
-  for (const [sheetName, byDate] of Object.entries(bySheet)) {
-    const dateToRow = await buildDateToRow(sheets, sheetName);
-    for (const [dateKey, row] of Object.entries(dateToRow)) {
+  for (const { source, sheetName, byDate } of counted) {
+    rowCache[sheetName] ??= await buildDateToRow(sheets, sheetName);
+    for (const [dateKey, row] of Object.entries(rowCache[sheetName])) {
       const dt = DateTime.fromFormat(dateKey, 'dd/LL/yyyy', { zone: SHEET_TIME_ZONE });
       if (!dt.isValid || dt < from || dt > to) continue;
       updates.push({
-        range: `${sheetName}!${colLetter(REVIEW_COLUMN)}${row}`,
+        range: `${sheetName}!${colLetter(source.column)}${row}`,
         values: [[byDate[dateKey] || 0]],
       });
     }
   }
-  warnings.forEach((w) => console.warn(`[reviews] ${w}`));
 
   if (args.dryRun) {
-    console.log(`[reviews] dry-run: ${updates.length} cell update(s) would be written to column ${colLetter(REVIEW_COLUMN)}:`);
+    console.log(`[reviews] dry-run: ${updates.length} cell update(s) would be written:`);
     for (const u of updates) console.log(`   ${u.range} = ${u.values[0][0]}`);
     return;
   }

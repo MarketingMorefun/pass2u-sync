@@ -73,15 +73,28 @@ export const PASS2U_MODELS = [
 ];
 
 // --- Google Business Profile: daily Google review counts ---
-// Which KOKO Amusement location's reviews feed each sheet tab. Every address has
-// both a KOKO and a Cityheroes listing; these are the KOKO ones (matching the
-// sheet's "KOKO Actual Review" column). Values are v4 resource names.
-export const REVIEW_LOCATIONS = {
-  '505': 'accounts/114306846451953559897/locations/18210929394932167048', // KOKO Amusement 505 George St
-  Haymarket: 'accounts/114306846451953559897/locations/6964935152400322497', // KOKO Amusement Haymarket
-  HB: 'accounts/114306846451953559897/locations/17484276715407259923', // KOKO Amusement Hornsby
-  Burwood: 'accounts/114306846451953559897/locations/14377477316368803489', // KOKO Amusement Burwood
-};
-
-// 1-based column the daily review count is written into. TODO: confirm from the sheet.
-export const REVIEW_COLUMN = 3; // C ("KOKO Actual Review")
+// Each address hosts a separate KOKO and Cityheroes listing; the sheet tracks them
+// in two columns (C "KOKO Actual Review", K "CH Actual Review"). Each source writes
+// its daily review count into its own column. Values are v4 resource names.
+export const REVIEW_SOURCES = [
+  {
+    label: 'KOKO',
+    column: 3, // C — "KOKO Actual Review"
+    locations: {
+      '505': 'accounts/114306846451953559897/locations/18210929394932167048', // KOKO Amusement 505 George St
+      Haymarket: 'accounts/114306846451953559897/locations/6964935152400322497', // KOKO Amusement Haymarket
+      HB: 'accounts/114306846451953559897/locations/17484276715407259923', // KOKO Amusement Hornsby
+      Burwood: 'accounts/114306846451953559897/locations/14377477316368803489', // KOKO Amusement Burwood
+    },
+  },
+  {
+    label: 'Cityheroes',
+    column: 11, // K — "CH Actual Review"
+    locations: {
+      '505': 'accounts/114306846451953559897/locations/7755103229219121595', // Cityheroes Billiards Townhall
+      Haymarket: 'accounts/114306846451953559897/locations/1096811168417532038', // Cityheroes Billiards Haymarket
+      HB: 'accounts/114306846451953559897/locations/1998527915405367559', // Cityheroes Billiards Hornsby
+      Burwood: 'accounts/114306846451953559897/locations/16634129386663274957', // Cityheroes Billiards Burwood
+    },
+  },
+];

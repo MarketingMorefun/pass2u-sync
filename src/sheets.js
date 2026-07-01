@@ -37,7 +37,7 @@ const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const SHEETS_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
 
 /** Mint a short-lived access token. OAuth refresh-token grant, or a service-account JWT. */
-async function getAccessToken() {
+export async function getAccessToken() {
   const {
     GOOGLE_OAUTH_CLIENT_ID,
     GOOGLE_OAUTH_CLIENT_SECRET,
@@ -115,9 +115,8 @@ function signServiceAccountJwt(key) {
  * Minimal Sheets client over native fetch, shaped like the slice of the googleapis
  * client this code used (`sheets.spreadsheets.values.get` / `.batchUpdate`).
  */
-export async function getSheetsClient() {
-  const token = await getAccessToken();
-  const authHeaders = { Authorization: `Bearer ${token}` };
+export async function getSheetsClient(token) {
+  const authHeaders = { Authorization: `Bearer ${token || (await getAccessToken())}` };
 
   const valuesGet = async ({ spreadsheetId, range, valueRenderOption, dateTimeRenderOption }) => {
     const params = new URLSearchParams();
@@ -146,7 +145,7 @@ export async function getSheetsClient() {
 const colLetter = (index) => COLUMN_LETTERS[index - 1];
 
 /** Read column A and return { 'dd/MM/yyyy' -> rowNumber }. */
-async function buildDateToRow(sheets, sheetName) {
+export async function buildDateToRow(sheets, sheetName) {
   const range = `${sheetName}!${colLetter(DATE_COLUMN)}${FIRST_DATA_ROW}:${colLetter(DATE_COLUMN)}`;
   const { data } = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,

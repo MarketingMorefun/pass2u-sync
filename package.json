@@ -8,6 +8,8 @@
     "sync": "node src/index.js",
     "sync:14": "node src/index.js --days 14",
     "dry-run": "node src/index.js --dry-run",
+    "reviews": "node src/reviews.js",
+    "reviews:dry-run": "node src/reviews.js --dry-run",
     "auth": "node scripts/get-refresh-token.mjs",
     "gbp:locations": "node scripts/list-gbp-locations.mjs"
   },

@@ -71,3 +71,17 @@ export const PASS2U_MODELS = [
   { id: 343596, voucherType: '$10', name: 'Cityheroes $10 Voucher' },
   { id: 339543, voucherType: '$4', name: 'Cityheroes $4 Voucher' },
 ];
+
+// --- Google Business Profile: daily Google review counts ---
+// Which KOKO Amusement location's reviews feed each sheet tab. Every address has
+// both a KOKO and a Cityheroes listing; these are the KOKO ones (matching the
+// sheet's "KOKO Actual Review" column). Values are v4 resource names.
+export const REVIEW_LOCATIONS = {
+  '505': 'accounts/114306846451953559897/locations/18210929394932167048', // KOKO Amusement 505 George St
+  Haymarket: 'accounts/114306846451953559897/locations/6964935152400322497', // KOKO Amusement Haymarket
+  HB: 'accounts/114306846451953559897/locations/17484276715407259923', // KOKO Amusement Hornsby
+  Burwood: 'accounts/114306846451953559897/locations/14377477316368803489', // KOKO Amusement Burwood
+};
+
+// 1-based column the daily review count is written into. TODO: confirm from the sheet.
+export const REVIEW_COLUMN = 3; // C ("KOKO Actual Review")
